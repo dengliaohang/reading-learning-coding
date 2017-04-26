@@ -20,7 +20,7 @@
 ##### 2015.6-2016.10  厦门市七星通联科技有限公司  Java工程师
 
 **简介**
-###### 七星生活app (o2o、社交、金融)，基于跨平台apicloud框架，springMVC+mybatis+redis
+###### 七星生活app (o2o、社交、金融)，基于跨平台 apicloud 框架，springMVC + mybatis + redis
 * 优惠券派发与领取模块开发，优化设计流程；
 * 活动抢优惠券后台模板框架开发；
 * 语音识别并发布需求功能模块开发；
@@ -29,17 +29,17 @@
 
 ### 技能与证书
 
-*  英语：CET6(508)、剑桥商务英语中级（BEC） 
-* 	熟悉Java：集合，多线程，(n)io，j.u.c，设计模式，jvm等基础知识
-* 	熟悉Spring MVC , MyBatis，shiro，FreeMarker 框架原理与使用；
-* 	熟悉MySql与MongoDB数据库，熟悉SQL语句以及查询调优
-* 	熟悉Web Service,Dubbo,Thrift RPC原理与熟练使用，熟悉netty框架，熟悉分布式服务化
+*  英语：CET6、剑桥商务英语中级（BEC） 
+* 	熟悉 Java：集合，多线程，(n)io，j.u.c，设计模式，jvm等基础知识
+* 	熟悉 Spring MVC , MyBatis，shiro，FreeMarker 框架原理与使用；
+* 	熟悉 MySql 与 MongoDB 数据库，熟悉 SQL 语句以及查询调优
+* 	熟悉Web Service , Dubbo , Thrift RPC 原理与熟练使用，熟悉 netty 框架，熟悉分布式服务化
 * 	熟悉 activemq、rabbitmq 消息队列的原理与使用
-* 	熟悉redis缓存；
-* 	熟悉tomcat与nginx服务器、docker容器与jenkins搭建与部署
-* 	熟悉html,css 熟悉JavaScript，熟悉node.js编程，能熟练上手各类基于js 的前端框架；
-* 	熟悉Android开发；
-* 	了解iOS开发，了解Objective-c基础语法，熟悉iOS基本控件
+* 	熟悉 redis 缓存实现原理，主从服务，集群，故障处理；
+* 	熟悉 tomcat 与 nginx 服务器
+* 	熟悉 html,css 熟悉 JavaScript，熟悉 node.js 编程，能熟练上手各类基于 js 的前端框架；
+* 	熟悉 Android 开发；
+* 	了解 iOS 开发，了解 Objective-c 基础语法，熟悉 iOS 基本控件
 
 ### 教育背景
 ##### 2011.9-2015.6         福建师范大学          电子信息科学与技术         本科
