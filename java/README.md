@@ -1,2 +1,6 @@
-# DragsunNetty
-netty学习与实战
+# java基础学习
+《Java并发编程的艺术》
+《深入理解Java虚拟机》
+框架源码
+集合源码
+设计模式
