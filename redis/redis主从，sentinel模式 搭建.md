@@ -78,6 +78,9 @@ min-slaves-max-lag 10
 这两个参数在 sentinel 模式也有作用，
 
 有三个主机，每个主机分别运行一个redis和一个sentinel:
+
+```
+
              +-------------+
              | Sentinel 1  | <--- Client A
              | Redis 1 (M) |
@@ -88,6 +91,9 @@ min-slaves-max-lag 10
 | Sentinel 2  |-----+-- / partition / ----| Sentinel 3 | <--- Client B
 | Redis 2 (S) |                           | Redis 3 (M)|
 +-------------+                           +------------+
+
+```
+
 
 #### 在这个系统中，初始状态下redis3是master, redis1和redis2是slave。之后redis3所在的主机网络不可用了，sentinel1和sentinel2启动了failover并把redis1选举为master。
 
