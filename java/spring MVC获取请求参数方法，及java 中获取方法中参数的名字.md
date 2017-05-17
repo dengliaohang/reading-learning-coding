@@ -5,7 +5,7 @@
 ```
 	/** 
 		Description: 跳转首页  <p>
-	    @author : zhuangjiesen@ssit-xm.com.cn 庄杰森 2016年4月19日
+	    @author : zhuangjiesen@qq.com 庄杰森 2016年4月19日
 		 */
 	@RequestMapping("/common/index.do")
 	public String toIndex(HttpServletRequest request,HttpServletResponse response ,
