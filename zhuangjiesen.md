@@ -41,10 +41,10 @@
 ### 技能与证书
 
 *  英语：CET6、剑桥商务英语中级（BEC） 
-* 	熟悉 Java：集合，多线程，(n)io，j.u.c，设计模式，jvm等基础知识
+* 	熟悉 Java：集合，多线程，(n)io，j.u.c，设计模式，jvm 等基础知识
 * 	熟悉 Spring MVC , MyBatis，shiro，FreeMarker 框架原理与使用；
 * 	熟悉 MySql 与 MongoDB 数据库，熟悉 SQL 语句以及查询调优
-* 	熟悉WebService , Dubbo , Thrift RPC 原理与熟练使用，熟悉 netty 框架，熟悉分布式服务化
+* 	熟悉 webService , dubbo , thrift RPC 原理与熟练使用，熟悉 netty 框架，熟悉分布式服务化
 * 	熟悉 activemq 消息队列的使用
 * 	熟悉 redis 缓存实现原理，主从服务，集群，故障处理；
 * 	熟悉 tomcat 与 nginx 服务器配置与使用
