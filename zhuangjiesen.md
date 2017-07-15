@@ -48,6 +48,7 @@
 * 	熟悉 activemq 消息队列的使用
 * 	熟悉 redis 缓存实现原理，主从服务，集群，故障处理；
 * 	熟悉 tomcat 与 nginx 服务器配置与使用
+*  熟悉 linux 系统，熟悉shell、python 脚本，熟悉 docker 的基本操作
 * 	熟悉 html,css 熟悉 JavaScript，熟悉 node.js 编程，能熟练上手各类基于 js 的前端框架；
 * 	了解 iOS 开发，了解 Objective-c 基础语法，熟悉 iOS 基本控件 ，熟悉 Android 开发
 
