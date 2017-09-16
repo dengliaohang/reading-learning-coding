@@ -162,3 +162,14 @@ docker commit bb2704ef409f centos_docker_nginx:centos_docker_nginx_tag
 ```
 
 
+### docker 进入docker 容器
+
+```
+docker exec -it <container_id> bash
+
+docker exec -it d996c366d966 /bin/bash  
+
+docker exec -it 7a88ebe7c2cc bash
+```
+
+
