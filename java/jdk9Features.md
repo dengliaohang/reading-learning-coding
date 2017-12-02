@@ -3,6 +3,8 @@
 3. g1回收器中优化了字符串对象的存储方式 ->原因是堆内存中发现字符串对象占用的空间太大 ， 共享字符串对象
 4. 默认G1回收器
 
+官网描述 ：http://openjdk.java.net/projects/jdk9/
+
 
 
 Integer IntegerCache 默认是127 可以通过设置虚拟机参数
