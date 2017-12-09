@@ -393,6 +393,8 @@ standardalone.password=redis
 
 
 附上项目源码:
+https://github.com/zhuangjiesen/CustomerAndProvider/tree/master/JavaProCustomer
+
 目录:
 ```
 处理类:
@@ -403,3 +405,4 @@ com.java.core.lock
 main方法 DistributedLocksApp.java下
 com.java.main.DistributedLocksApp.java
 ```
+
