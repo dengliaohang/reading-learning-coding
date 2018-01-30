@@ -2,6 +2,7 @@
 
 ### HashMap 
 #### put :
+```
 1.判断 table 是否空，空则初始化
 2.计算槽位
 3.槽位首节点如果为空直接插入槽
@@ -30,7 +31,7 @@
         	    4.2.4.3 触发afterNodeInsertion() 方法
         	    4.2.3.4 返回 null 
         	    4.2.4.5 put方法结束
-
+```
 
 ### ConcurrentHashMap 1.8源码
 
@@ -38,6 +39,7 @@
 
 
 ### 初始化 (处理并发)
+
 ```
 在 putVal() 方法中，首先套了个(死)循环，每次都获取最新的 table 引用，然后在第一次对数据进行put 时，判断table 和 sizeCtl (数组大小 ：-1 表示初始化 -N 表示进行扩容的线程数为N-1 ， 初始化完成后数值是容量的0.75倍也就是thredholds 值)
 initTable() 中：
@@ -631,5 +633,7 @@ transferIndex 用来记录(标记)当前正在扩容的槽位， 初始是从最
 ConcurrentHashMap 的 put 并不是因为CAS保证了线程安全，而是因为用了double check 加上槽位头结点上锁，完成了线程安全的操作，而CAS只是常规操作，当然也是线程安全的实现，但是我个人认为真正关键的位置就是那个 putVal() 方法下的 synchronized (f) ... 代码块
 
 ```
+
+
 
 
