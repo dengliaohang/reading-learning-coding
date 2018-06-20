@@ -1,5 +1,93 @@
 # SpringMVC Springboot 参数解析源码
 
+### Spring MVC版本号
+```      
+    <version>3.1.4.RELEASE</version>
+不同版本其实差别不是特别大
+
+```
+### 示例：
+```
+
+//正常的一个请求 @RequestMapping("testPostParam.do")
+    public Map<String, Object> testPostParam(
+            @PostJsonParam String name ,
+            @RequestBody BaseObject baseObject ,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ){
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("success" , "1");
+        resp.put("testPostParam" , "HELLO");
+        return resp;
+    }
+```
+
+
+#### SpringMVC初始化时会把这个方法解析成一个 HandlerExecutionChain.java(org.springframework.web.servlet.HandlerExecutionChain.java) 对象，属性代码如下
+
+```
+//解释方法属性
+public class HandlerExecutionChain {
+    private static final Log logger = LogFactory.getLog(HandlerExecutionChain.class);
+    /*
+    handler对象是 HandlerMethod.java 类型
+    */ 
+    private final Object handler;
+    /*
+    配置的拦截器数组
+    */
+    @Nullable
+    private HandlerInterceptor[] interceptors;
+    @Nullable
+    private List<HandlerInterceptor> interceptorList;
+    private int interceptorIndex;
+
+    public HandlerExecutionChain(Object handler) {
+        this(handler, (HandlerInterceptor[])null);
+    }
+    ...省略部分方法代码
+}
+```
+
+#### HandlerMethod.java 属性如下
+```
+
+public class HandlerMethod {
+    protected final Log logger = LogFactory.getLog(this.getClass());
+    /*
+    定义所属 controller 的bean
+    */
+    private final Object bean;
+    @Nullable
+    private final BeanFactory beanFactory;
+    /*
+        controller 的类型
+    */
+    private final Class<?> beanType;
+     /*
+    对应controller 的方法体
+    */
+    private final Method method;
+    /*
+    对应controller 的方法体
+    */
+    private final Method bridgedMethod;
+    /*
+        方法的参数列表
+    */
+    private final MethodParameter[] parameters;
+    @Nullable
+    private HttpStatus responseStatus;
+    @Nullable
+    private String responseStatusReason;
+    @Nullable
+    private HandlerMethod resolvedFromHandlerMethod;
+    
+    ...省略方法代码
+}
+```
+
 ### 打断点的步骤:
 ```
 1. DispatcherServlet.java 的 ex1.handle(processedRequest, response, mappedHandler.getHandler()); 就是handlerAdapter 的调用
@@ -274,6 +362,24 @@ request-body : {
     }
 
 
+   @RequestMapping("testPostParam.do")
+    public Map<String, Object> testPostParam(
+            String name ,
+            @RequestBody Map<String , Object> body ,
+            @RequestBody BaseObject baseObject
+    ){
+    /*
+        定义2个 @RequestBody 注解会报 400 错误，因为request的输入流只能读取一次，每个 @RequestBody 都会通过 MessageConverter 读取一次输入流
+    */
+        Map<String, Object> resp = new HashMap<>();
+
+
+        resp.put("success" , "1");
+        resp.put("testPostParam" , "HELLO");
+        return resp;
+    }
+
+
 
 ```
 #### 结论
@@ -404,9 +510,94 @@ supportsParameter();方法用来判断可以解析的参数类型
 ### 后续
 ```
 //TODO 
-post请求参数(application/json)的获取都需要用 @RequestBody 来获取吗
+1. post请求参数(application/json)的获取都需要用 @RequestBody 来获取吗 (是的)
 //TODO
-spring boot 参数解析是不是一样的
+spring boot 参数解析是不是一样的 (经过测试是一样的)
+```
+
+#### 例子（post请求参数(application/json)的获取都需要用 @RequestBody 来获取）：
+```
+@RequestMapping("testPostParam.do")
+    public Map<String, Object> testPostParam(
+            @PostJsonParam String name ,
+            @RequestBody BaseObject baseObject
+    ){
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("success" , "1");
+        resp.put("testPostParam" , "HELLO");
+        return resp;
+    }
+
+```
+
+#### 请求的参数如果没有请求体(请求体为空)报错：
+```
+{
+    "timestamp": 1529486030364,
+    "status": 400,
+    "error": "Bad Request",
+    "message": "Required request body is missing: public java.util.Map<java.lang.String, java.lang.Object> com.jason.controller.TestController.testPostParam(java.lang.String,com.jason.model.BaseObject)",
+    "path": "/testPostParam.do"
+}
+```
+
+#### 如果请求体为 {} ,就不会报错
+
+
+
+#### 例子（参数中定义了2个 @RequestBody 注解）：
+```
+@RequestMapping("testPostParam.do")
+    public Map<String, Object> testPostParam(
+            @PostJsonParam String name ,
+            @RequestBody Map<String , Object> body ,
+            @RequestBody BaseObject baseObject
+    ){
+    /*
+    这个请求会报错
+    
+    */
+        Map<String, Object> resp = new HashMap<>();
+
+
+        resp.put("success" , "1");
+        resp.put("testPostParam" , "HELLO");
+        return resp;
+    }
+      
+```
+
+#### 报错信息：
+```
+
+{
+    "timestamp": 1529485541393,
+    "status": 400,
+    "error": "Bad Request",
+    "message": "Required request body is missing: public java.util.Map<java.lang.String, java.lang.Object> com.jason.controller.TestController.testPostParam(java.lang.String,java.util.Map<java.lang.String, java.lang.Object>,com.jason.model.BaseObject)",
+    "path": "/testPostParam.do"
+}
+```
+#### 原因：
+```
+源码位置：
+RequestResponseBodyMethodProcessor.java 类中，resolveArgument()方法中调用了readWithMessageConverters()方法，在该方法中又调用了messageConverter对象，去读取request的请求的body数据
+
+一句话：
+参数解析过程中遇到@RequestBody 就会从request去读body的inputStream，并赋值，通过第二个的话就会报错了
+
+```
+
+
+
+### 文档：
+#### SpringMVC文档:
+```
+https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html
+```
+#### HTTP官方文档（rfc2068）：
+```
+https://tools.ietf.org/html/rfc2068
 ```
 
 
