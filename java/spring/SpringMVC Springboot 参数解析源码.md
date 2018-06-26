@@ -6,6 +6,8 @@
 不同版本其实差别不是特别大
 
 ```
+
+
 ### 示例：
 ```
 
@@ -90,17 +92,17 @@ public class HandlerMethod {
 
 ### 打断点的步骤:
 ```
-1. DispatcherServlet.java 的 ex1.handle(processedRequest, response, mappedHandler.getHandler()); 就是handlerAdapter 的调用
+1. DispatcherServlet.java 的 ex1.handle(processedRequest, response, mappedHandler.getHandler()); 就是handlerAdapter 的调用 (ex1 这里是先通过 request 的url 和 method 去获取的 HandlerAdapter ex1 = this.getHandlerAdapter(mappedHandler.getHandler());)
 
-2. AbstractHandlerMethodAdapter.java
+2.进入 AbstractHandlerMethodAdapter.java (默认请求处理适配器)
 handle()方法
 
-3. RequestMappingHandlerAdapter.java
+3.进入 RequestMappingHandlerAdapter.java (AbstractHandlerMethodAdapter.java 的实现类)
 handleInternal()方法
 
-3. RequestMappingHandlerAdapter.java
-invokeHandlerMethod()方法
-	4. 底下有个requestMappingMethod.invokeAndHandle()方法
+3.进入 RequestMappingHandlerAdapter.java
+invokeHandlerMethod() 方法
+	4. 底下有个requestMappingMethod.invokeAndHandle() 方法
 		5. 进入 -> ServletInvocableHandlerMethod.java 的 invokeAndHandle()方法 
 			6. 底下有方法 —> ServletInvocableHandlerMethod.java 的 this.invokeForRequest()方法
 				7. 底下有方法 -> ServletInvocableHandlerMethod .java this.getMethodArgumentValues() 这一步用来获取请求参数(controller 方法的参数，并注入)
@@ -125,7 +127,199 @@ tip:根据上述的 `-`或者序号 底下的类，进入， F5 进行搜索到�
 
 ```
 
-### ServletInvocableHandlerMethod .java 的方法 this.getMethodArgumentValues() 代码：
+### 请求处理核心 RequestMappingHandlerAdapter.java (继承 AbstractHandlerMethodAdapter.java)
+#### 初始化代码(实现了 InitializingBean.java )：
+```
+
+
+    public void afterPropertiesSet() {
+        this.initControllerAdviceCache();
+        List handlers;
+        /*
+        初始化默认的参数选择器 
+        并加载到 HandlerMethodArgumentResolverComposite.java 属性中 , composite(含义是综合的，合成物)，功能是请求通过调用它，获取到对应的符合条件的请求参数处理器，并进行处理(还有个缓存)
+        */
+        if(this.argumentResolvers == null) {
+            handlers = this.getDefaultArgumentResolvers();
+            this.argumentResolvers = (new HandlerMethodArgumentResolverComposite()).addResolvers(handlers);
+        }
+
+        if(this.initBinderArgumentResolvers == null) {
+            handlers = this.getDefaultInitBinderArgumentResolvers();
+            this.initBinderArgumentResolvers = (new HandlerMethodArgumentResolverComposite()).addResolvers(handlers);
+        }
+
+        if(this.returnValueHandlers == null) {
+            handlers = this.getDefaultReturnValueHandlers();
+            this.returnValueHandlers = (new HandlerMethodReturnValueHandlerComposite()).addHandlers(handlers);
+        }
+
+    }
+
+... 省略部分代码
+
+
+/*
+
+这个方法是初始化默认的参数处理器，先初始化系统默认的，然后在从 
+this.getCustomArgumentResolvers() 方法中添加自定义的
+*/
+    private List<HandlerMethodArgumentResolver> getDefaultArgumentResolvers() {
+    /*
+    加载了一大坨默认的请求处理器
+    */
+        ArrayList resolvers = new ArrayList();
+        resolvers.add(new RequestParamMethodArgumentResolver(this.getBeanFactory(), false));
+        resolvers.add(new RequestParamMapMethodArgumentResolver());
+        resolvers.add(new PathVariableMethodArgumentResolver());
+        resolvers.add(new PathVariableMapMethodArgumentResolver());
+        resolvers.add(new MatrixVariableMethodArgumentResolver());
+        resolvers.add(new MatrixVariableMapMethodArgumentResolver());
+        resolvers.add(new ServletModelAttributeMethodProcessor(false));
+        resolvers.add(new RequestResponseBodyMethodProcessor(this.getMessageConverters(), this.requestResponseBodyAdvice));
+        resolvers.add(new RequestPartMethodArgumentResolver(this.getMessageConverters(), this.requestResponseBodyAdvice));
+        resolvers.add(new RequestHeaderMethodArgumentResolver(this.getBeanFactory()));
+        resolvers.add(new RequestHeaderMapMethodArgumentResolver());
+        resolvers.add(new ServletCookieValueMethodArgumentResolver(this.getBeanFactory()));
+        resolvers.add(new ExpressionValueMethodArgumentResolver(this.getBeanFactory()));
+        resolvers.add(new SessionAttributeMethodArgumentResolver());
+        resolvers.add(new RequestAttributeMethodArgumentResolver());
+        resolvers.add(new ServletRequestMethodArgumentResolver());
+        resolvers.add(new ServletResponseMethodArgumentResolver());
+        resolvers.add(new HttpEntityMethodProcessor(this.getMessageConverters(), this.requestResponseBodyAdvice));
+        resolvers.add(new RedirectAttributesMethodArgumentResolver());
+        resolvers.add(new ModelMethodProcessor());
+        resolvers.add(new MapMethodProcessor());
+        resolvers.add(new ErrorsMethodArgumentResolver());
+        resolvers.add(new SessionStatusMethodArgumentResolver());
+        resolvers.add(new UriComponentsBuilderMethodArgumentResolver());
+        
+        /*
+        这边获取自定义的 HandlerMethodArgumentResolver.java 的实现
+        */
+        if(this.getCustomArgumentResolvers() != null) {
+            resolvers.addAll(this.getCustomArgumentResolvers());
+        }
+
+        resolvers.add(new RequestParamMethodArgumentResolver(this.getBeanFactory(), true));
+        resolvers.add(new ServletModelAttributeMethodProcessor(true));
+        return resolvers;
+    }
+
+```
+
+### HandlerMethodArgumentResolverComposite.java 代码：
+```
+
+public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgumentResolver {
+    protected final Log logger = LogFactory.getLog(this.getClass());
+    /*
+    请求处理器的集合
+    */
+    private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList();
+    /*
+    请求处理缓存，请求参数相同时，直接缓存，提高查询效率
+    */
+    private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache = new ConcurrentHashMap(256);
+
+    public HandlerMethodArgumentResolverComposite() {
+    }
+
+    public HandlerMethodArgumentResolverComposite addResolver(HandlerMethodArgumentResolver resolver) {
+        this.argumentResolvers.add(resolver);
+        return this;
+    }
+
+    public HandlerMethodArgumentResolverComposite addResolvers(@Nullable HandlerMethodArgumentResolver... resolvers) {
+        if(resolvers != null) {
+            HandlerMethodArgumentResolver[] var2 = resolvers;
+            int var3 = resolvers.length;
+
+            for(int var4 = 0; var4 < var3; ++var4) {
+                HandlerMethodArgumentResolver resolver = var2[var4];
+                this.argumentResolvers.add(resolver);
+            }
+        }
+
+        return this;
+    }
+
+    public HandlerMethodArgumentResolverComposite addResolvers(@Nullable List<? extends HandlerMethodArgumentResolver> resolvers) {
+        if(resolvers != null) {
+            Iterator var2 = resolvers.iterator();
+
+            while(var2.hasNext()) {
+                HandlerMethodArgumentResolver resolver = (HandlerMethodArgumentResolver)var2.next();
+                this.argumentResolvers.add(resolver);
+            }
+        }
+
+        return this;
+    }
+
+    
+    /*
+    判断参数是否能够处理
+    */  
+    public boolean supportsParameter(MethodParameter parameter) {
+        return this.getArgumentResolver(parameter) != null;
+    }
+
+    @Nullable
+    public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer, NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
+        /*
+        获取对应的参数处理器，并处理识别参数和返回流程
+        */
+        HandlerMethodArgumentResolver resolver = this.getArgumentResolver(parameter);
+        if(resolver == null) {
+            throw new IllegalArgumentException("Unknown parameter type [" + parameter.getParameterType().getName() + "]");
+        } else {
+            return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+        }
+    }
+
+    /*
+    获取对应的参数处理器，并存缓存
+    */
+    @Nullable
+    private HandlerMethodArgumentResolver getArgumentResolver(MethodParameter parameter) {
+        HandlerMethodArgumentResolver result = (HandlerMethodArgumentResolver)this.argumentResolverCache.get(parameter);
+        if(result == null) {
+            Iterator var3 = this.argumentResolvers.iterator();
+
+            while(var3.hasNext()) {
+                HandlerMethodArgumentResolver methodArgumentResolver = (HandlerMethodArgumentResolver)var3.next();
+                if(this.logger.isTraceEnabled()) {
+                    this.logger.trace("Testing if argument resolver [" + methodArgumentResolver + "] supports [" + parameter.getGenericParameterType() + "]");
+                }
+
+                if(methodArgumentResolver.supportsParameter(parameter)) {
+                    result = methodArgumentResolver;
+                    this.argumentResolverCache.put(parameter, methodArgumentResolver);
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+}
+
+```
+
+### 请求处理
+
+```
+每个请求的处理在 RequestMappingHandlerAdapter.java 中的 invokeHandlerMethod() 方法都会创建一个新的 ServletInvocableHandlerMethod.java ，
+然后把参数处理器(argumentResolvers)， 结果值处理器 (returnValueHandlers) ， http报文处理器(messageConverter) ，Spring 容器 等一些请求相关的参数注入进去， 
+然后调用 invokeAndHandle() 处理请求
+```
+
+### 图:
+![SpringMVC参数解析源码](media/15285513530131/SpringMVC%E5%8F%82%E6%95%B0%E8%A7%A3%E6%9E%90%E6%BA%90%E7%A0%81.png)
+
+
+### ServletInvocableHandlerMethod.java 的方法 this.getMethodArgumentValues() 代码：
 
 ```
 
