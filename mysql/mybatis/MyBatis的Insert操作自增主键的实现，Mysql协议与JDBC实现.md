@@ -298,6 +298,16 @@ MysqlIO.readAllResults()//解析返回值报文
 ```
 mysql的协议中，服务器响应报文是对于insert/update/delete是有返回主键值的，只是应用层中没有给出接口
 
+
+4.3.1 OK 响应报文
+客户端的命令执行正确时，服务器会返回OK响应报文。
+MySQL 4.0 及之前的版本
+字节	说明
+1	OK报文，值恒为0x00
+1-9	受影响行数（Length Coded Binary）
+1-9	索引ID值（Length Coded Binary）
+2	服务器状态
+n	服务器消息（字符串到达消息尾部时结束，无结束符）
 ```
 
 ### mysql协议博客 
